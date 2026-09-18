@@ -1,13 +1,17 @@
 import { calculateTriangle } from './math.js';
 import { Renderer } from './renderer.js';
-import { PX_PER_CM } from './config.js';
 
 const canvas = document.getElementById('trigCanvas');
 const formulas = document.getElementById('formulas');
-const renderer = new Renderer(canvas);
+const renderer = new Renderer(canvas, handleResize);
 
-const origin = renderer.origin;
-let mouse = { x: origin.x + 177, y: origin.y - 177 }; // ~45°, 5 cm de hipotenusa
+// Estado inicial: ~45°, 3,5 cm de hipotenusa (convertido para px na escala atual).
+const INITIAL_ANGLE_RAD = (45 * Math.PI) / 180;
+const INITIAL_HYPOTENUSE_CM = 3.5;
+let mouse = {
+  x: renderer.origin.x + INITIAL_HYPOTENUSE_CM * renderer.pxPerCm * Math.cos(INITIAL_ANGLE_RAD),
+  y: renderer.origin.y - INITIAL_HYPOTENUSE_CM * renderer.pxPerCm * Math.sin(INITIAL_ANGLE_RAD)
+};
 let isDragging = false;
 let angleLocked = false;
 let lockedAngleDeg = null;
@@ -20,41 +24,60 @@ function fraction(num, den) {
 }
 
 function updateUI(data) {
-  const sin = Math.sin(data.angleRad);
-  const cos = Math.cos(data.angleRad);
+//  const sin = Math.sin(data.angleRad).toFixed(2) / 10;
+//  const cos = Math.cos(data.angleRad).toFixed(2) / 10;
   const angle = data.angleDeg;
-  const h = data.hypotenuseCm.toFixed(1);
-  const ca = (data.ca / PX_PER_CM).toFixed(1);
-  const co = (data.co / PX_PER_CM).toFixed(1);
+  const h = ( data.hypotenuseCm /10 ).toFixed(2);
+  const ca = (data.ca / renderer.pxPerCm / 10).toFixed(2);
+  const co = (data.co / renderer.pxPerCm / 10).toFixed(2);
+  const sin = (co/h);
+  const cos = (ca/h);
+  const tan = (co/ca);
   const cos_angle = `cos ${angle}°`;
   const sen_angle = `sen ${angle}°`;
 
+
   formulas.innerHTML = `
     <div class="formula-row">
-      <span class="opposite">sen</span> <span class="angle">${angle}°</span> = ${fraction('cateto oposto', 'hipotenusa')} = ${fraction(co, h)} = ${sin.toFixed(1)}
+      <span class="opposite">sen</span> <span class="angle">${angle}°</span> = ${fraction('cateto oposto', 'hipotenusa')} = ${fraction(co, h)} ≅ ${sin.toFixed(2)}
     </div>
     <div class="formula-row">
-      <span class="adjacent">cos</span> <span class="angle">${angle}° </span> = ${fraction('cateto adjacente', 'hipotenusa')}= ${fraction(ca, h)} = ${cos.toFixed(1)}
+      <span class="adjacent">cos</span> <span class="angle">${angle}° </span> = ${fraction('cateto adjacente', 'hipotenusa')}= ${fraction(ca, h)} ≅ ${cos.toFixed(2)}
     </div>
     <div class="formula-row">
-      <span class="tangente">tg</span> <span class="angle">${angle}° </span> = ${fraction('cateto oposto', 'cateto adjacente')}= ${fraction(co, ca)} = ${(co / ca).toFixed(1)}
+      <span class="tangente">tg</span> <span class="angle">${angle}° </span> = ${fraction('cateto oposto', 'cateto adjacente')}= ${fraction(co, ca)} ≅ ${tan.toFixed(2)}
     </div>
     <div class="formula-row">
-      <span class="tangente">tg</span> <span class="angle">${angle}° </span> = ${fraction(sen_angle, cos_angle)}= ${fraction(sin.toFixed(1), cos.toFixed(1))} = ${(co / ca).toFixed(1)}
+      <span class="tangente">tg</span> <span class="angle">${angle}° </span> = ${fraction(sen_angle, cos_angle)}= ${fraction(sin.toFixed(2), cos.toFixed(2))} ≅ ${tan.toFixed(2)}
     </div>
   `;
 }
 
 function render() {
+  const origin = renderer.origin;
   const data = calculateTriangle(
     origin,
     mouse,
+    renderer.pxPerCm,
     angleLocked ? lockedAngleDeg : null,
     hypotenuseLocked ? lockedHypotenuseCm : null
   );
   lastData = data;
   renderer.draw(origin, data, angleLocked, hypotenuseLocked);
   updateUI(data);
+}
+
+// Recalcula a posição (px) do vértice B ao redimensionar, preservando o
+// ângulo e a hipotenusa (cm) já configurados pelo usuário.
+function handleResize() {
+  if (!lastData) return;
+  const origin = renderer.origin;
+  const angleRad = (lastData.angleDeg * Math.PI) / 180;
+  mouse = {
+    x: origin.x + lastData.hypotenuseCm * renderer.pxPerCm * Math.cos(angleRad),
+    y: origin.y - lastData.hypotenuseCm * renderer.pxPerCm * Math.sin(angleRad)
+  };
+  render();
 }
 
 function getCanvasPoint(clientX, clientY) {

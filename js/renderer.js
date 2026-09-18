@@ -1,10 +1,9 @@
-import { PX_PER_CM, MAX_HYPOTENUSE_CM } from './config.js';
-
-// Espaço reservado ao redor do triângulo para os rótulos desenhados na figura.
-const MARGIN_LEFT = 70;
-const MARGIN_RIGHT = 80;
-const MARGIN_TOP = 70;
-const MARGIN_BOTTOM = 70;
+import {
+  MAX_HYPOTENUSE_CM,
+  ORIGIN_Y_RATIO,
+  HYPOTENUSE_WIDTH_RATIO,
+  HYPOTENUSE_HEIGHT_RATIO
+} from './config.js';
 
 function normalize(v) {
   const len = Math.hypot(v.x, v.y) || 1;
@@ -40,28 +39,40 @@ function labelPosition(p1, p2, awayFrom, distance) {
 }
 
 export class Renderer {
-  constructor(canvas) {
+  constructor(canvas, onResize) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    this.onResize = onResize;
     this.setupResolution();
+
+    new ResizeObserver(() => {
+      this.setupResolution();
+      if (this.onResize) this.onResize();
+    }).observe(canvas);
   }
 
+  // Recalcula dimensões, origem e escala (px/cm) a partir do espaço
+  // realmente disponível no container (CSS), tornando o triângulo
+  // responsivo a qualquer resolução (spec docs/spec.md §7).
   setupResolution() {
-    // Maior cateto possível: hipotenusa máxima próxima de 5°/85°.
-    const maxLeg = MAX_HYPOTENUSE_CM * PX_PER_CM;
-    const width = MARGIN_LEFT + maxLeg + MARGIN_RIGHT;
-    const height = MARGIN_TOP + maxLeg + MARGIN_BOTTOM;
+    const { width, height } = this.canvas.getBoundingClientRect();
 
     this.width = width;
     this.height = height;
-    this.origin = { x: MARGIN_LEFT, y: height - MARGIN_BOTTOM };
+
+    // Maior comprimento de hipotenusa que cabe no espaço disponível — também
+    // a largura ocupada pela base do triângulo (cateto adjacente no pior caso).
+    const maxHypotenusePx = Math.min(width * HYPOTENUSE_WIDTH_RATIO, height * HYPOTENUSE_HEIGHT_RATIO);
+    this.pxPerCm = maxHypotenusePx / MAX_HYPOTENUSE_CM;
+
+    // Centraliza a base horizontalmente no espaço disponível, em vez de
+    // fixá-la a uma margem esquerda constante.
+    this.origin = { x: (width - maxHypotenusePx) / 2, y: height * ORIGIN_Y_RATIO };
 
     const dpr = window.devicePixelRatio || 1;
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
-    this.ctx.scale(dpr, dpr);
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   isNearAngleLabel(point, radius = 22) {
@@ -78,7 +89,7 @@ export class Renderer {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.width, this.height);
 
-    const toCm = (px) => (px / PX_PER_CM / 10).toFixed(2);
+    const toCm = (px) => (px / this.pxPerCm / 10).toFixed(2);
 
     // 1. Cateto Adjacente (Base - Azul)
     ctx.strokeStyle = '#38bdf8';

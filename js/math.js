@@ -1,5 +1,4 @@
 import {
-  PX_PER_CM,
   MIN_ANGLE_DEG,
   MAX_ANGLE_DEG,
   ANGLE_STEP_DEG,
@@ -8,7 +7,7 @@ import {
   HYPOTENUSE_STEP_CM
 } from './config.js';
 
-export function calculateTriangle(origin, mouse, lockedAngleDeg = null, lockedHypotenuseCm = null) {
+export function calculateTriangle(origin, mouse, pxPerCm, lockedAngleDeg = null, lockedHypotenuseCm = null) {
   const dx = mouse.x - origin.x;
   const dy = origin.y - mouse.y; // Inverte eixo Y do Canvas
 
@@ -32,11 +31,11 @@ export function calculateTriangle(origin, mouse, lockedAngleDeg = null, lockedHy
   } else {
     // Comprimento da hipotenusa ajustado para saltos de 0,5 cm,
     // limitado entre 1 e 10 cm.
-    const rawHypotenuseCm = Math.sqrt(dx * dx + dy * dy) / PX_PER_CM;
+    const rawHypotenuseCm = Math.sqrt(dx * dx + dy * dy) / pxPerCm;
     hypotenuseCm = Math.round(rawHypotenuseCm / HYPOTENUSE_STEP_CM) * HYPOTENUSE_STEP_CM;
     hypotenuseCm = Math.max(MIN_HYPOTENUSE_CM, Math.min(MAX_HYPOTENUSE_CM, hypotenuseCm));
   }
-  const hypotenuse = hypotenuseCm * PX_PER_CM;
+  const hypotenuse = hypotenuseCm * pxPerCm;
 
   const ca = hypotenuse * Math.cos(angleRad);
   const co = hypotenuse * Math.sin(angleRad);
