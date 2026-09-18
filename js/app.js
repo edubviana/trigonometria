@@ -26,6 +26,8 @@ function updateUI(data) {
   const h = data.hypotenuseCm.toFixed(1);
   const ca = (data.ca / PX_PER_CM).toFixed(1);
   const co = (data.co / PX_PER_CM).toFixed(1);
+  const cos_angle = `cos ${angle}°`;
+  const sen_angle = `sen ${angle}°`;
 
   formulas.innerHTML = `
     <div class="formula-row">
@@ -33,6 +35,12 @@ function updateUI(data) {
     </div>
     <div class="formula-row">
       <span class="adjacent">cos</span> <span class="angle">${angle}° </span> = ${fraction('cateto adjacente', 'hipotenusa')}= ${fraction(ca, h)} = ${cos.toFixed(1)}
+    </div>
+    <div class="formula-row">
+      <span class="tangente">tg</span> <span class="angle">${angle}° </span> = ${fraction('cateto oposto', 'cateto adjacente')}= ${fraction(co, ca)} = ${(co / ca).toFixed(1)}
+    </div>
+    <div class="formula-row">
+      <span class="tangente">tg</span> <span class="angle">${angle}° </span> = ${fraction(sen_angle, cos_angle)}= ${fraction(sin.toFixed(1), cos.toFixed(1))} = ${(co / ca).toFixed(1)}
     </div>
   `;
 }

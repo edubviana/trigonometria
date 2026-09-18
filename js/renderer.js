@@ -78,7 +78,7 @@ export class Renderer {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.width, this.height);
 
-    const toCm = (px) => (px / PX_PER_CM).toFixed(1);
+    const toCm = (px) => (px / PX_PER_CM / 10).toFixed(2);
 
     // 1. Cateto Adjacente (Base - Azul)
     ctx.strokeStyle = '#38bdf8';
@@ -162,7 +162,7 @@ export class Renderer {
     this.hypotenuseLabelPos = hLabel;
     ctx.fillStyle = '#a855f7';
     ctx.fillText(
-      hypotenuseLocked ? `${data.hypotenuseCm.toFixed(1)} cm 🔒` : `${data.hypotenuseCm.toFixed(1)} cm`,
+      hypotenuseLocked ? `${toCm(data.hypotenuse.toFixed(1))} cm 🔒` : `${toCm(data.hypotenuse.toFixed(1))} cm`,
       hLabel.x,
       hLabel.y
     );
