@@ -1,0 +1,34 @@
+CSS
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+body { background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
+.app-title { text-align: center; padding: 24px 16px 0; font-size: 1.6rem; color: #f8fafc; }
+.container { display: flex; width: 100%; flex: 1; }
+.canvas-panel { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 24px; }
+canvas { background: #1e293b; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: default; touch-action: none; }
+.hint { margin-top: 10px; color: #94a3b8; font-size: 0.9rem; }
+.hypotenuse { color: #a855f7; font-weight: bold; }
+.adjacent { color: #38bdf8; font-weight: bold; }
+.opposite { color: #f87171; font-weight: bold; }
+.angle { color: #facc15; font-weight: bold; }
+
+.formulas { margin-top: 18px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+.formula-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1e293b;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 1.05rem;
+}
+.fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.85em;
+  line-height: 1.3;
+  margin: 0 2px;
+}
+.fraction .num,
+.fraction .den { padding: 0 4px; }
+.fraction .num { border-bottom: 1.5px solid currentColor; }
